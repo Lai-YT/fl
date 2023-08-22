@@ -1,0 +1,8 @@
+.vscode/
+
+# generated files
+scanner.*pp
+parser.*pp
+*.o
+*.d
+main

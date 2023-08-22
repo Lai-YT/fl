@@ -1,0 +1,9 @@
+func main = { add 320 6 }
+func add x y = { x + y }
+data List = { Nil, Cons Int List }
+func val l = {
+  case l of {
+      Nil -> { 0 }
+      Cons x xs -> { x }
+  }
+}
