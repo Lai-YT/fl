@@ -5,34 +5,64 @@
 #include <utility>  // for move
 #include <vector>   // for vector
 
+#include "visitor.hpp"
+
 namespace fl {
 
-struct Visitor;
+template <class T>
+struct remove_cvptr {
+  typedef std::remove_cv_t<std::remove_pointer_t<T>> type;
+};
+template <class T>
+using remove_cvptr_t = typename remove_cvptr<T>::type;
+
+#define PURE_ACCEPT() \
+  virtual void Accept(BaseVisitor& v) = 0; \
+  virtual void Accept(BaseVisitor& v) const = 0;
+
+#define VOID_ACCEPT() \
+  virtual void Accept(BaseVisitor& v) { \
+    if (auto* visitor = \
+            dynamic_cast<Visitor<fl::remove_cvptr_t<decltype(this)>, false>*>( \
+                &v)) { \
+      visitor->Visit(*this); \
+    } else if (auto* visitor = dynamic_cast< \
+                   Visitor<fl::remove_cvptr_t<decltype(this)>, true>*>(&v)) { \
+      visitor->Visit(*this); \
+    } \
+  } \
+  virtual void Accept(BaseVisitor& v) const { \
+    if (auto* visitor = \
+            dynamic_cast<Visitor<fl::remove_cvptr_t<decltype(this)>, false>*>( \
+                &v)) { \
+      visitor->Visit(*this); \
+    } \
+  }
 
 template <class T>
 using UniquePtr = std::unique_ptr<T>;
 
 struct Ast {
-  virtual void Accept(Visitor&) = 0;
+  PURE_ACCEPT()
 
   virtual ~Ast() = default;
 };
 
 struct Pattern {
-  virtual void Accept(Visitor&) = 0;
+  PURE_ACCEPT()
 
   virtual ~Pattern() = default;
 };
 
 class Branch {
  public:
-  virtual void Accept(Visitor&);
+  VOID_ACCEPT()
 
-  Pattern& pattern() const {
+  const auto& pattern() const {
     return *pattern_;
   }
 
-  Ast& ast() const {
+  const auto& ast() const {
     return *ast_;
   }
 
@@ -46,13 +76,13 @@ class Branch {
 
 class TypeConstructor {
  public:
-  virtual void Accept(Visitor&);
+  VOID_ACCEPT()
 
-  auto& name() const {
+  const auto& name() const {
     return name_;
   }
 
-  auto& types() const {
+  const auto& types() const {
     return types_;
   }
 
@@ -66,11 +96,11 @@ class TypeConstructor {
 
 class Int : public Ast {
  public:
-  auto& value() const {
+  VOID_ACCEPT()
+
+  auto value() const {
     return value_;
   }
-
-  virtual void Accept(Visitor&) override;
 
   Int(int v) : value_{v} {}
 
@@ -80,11 +110,11 @@ class Int : public Ast {
 
 class TypeId : public Ast {
  public:
-  auto& id() const {
+  const auto& id() const {
     return id_;
   }
 
-  virtual void Accept(Visitor&) override;
+  VOID_ACCEPT()
 
   explicit TypeId(std::string id) : id_{std::move(id)} {}
 
@@ -94,11 +124,11 @@ class TypeId : public Ast {
 
 class VarId : public Ast {
  public:
-  auto& id() const {
+  const auto& id() const {
     return id_;
   }
 
-  virtual void Accept(Visitor&) override;
+  VOID_ACCEPT()
 
   explicit VarId(std::string id) : id_{std::move(id)} {}
 
@@ -110,19 +140,19 @@ class BinOp : public Ast {
  public:
   enum class Op { KPlus, KMinus, KTimes, KDivide };
 
-  auto& op() const {
+  auto op() const {
     return op_;
   }
 
-  auto& lhs() const {
+  const auto& lhs() const {
     return *lhs_;
   }
 
-  auto& rhs() const {
+  const auto& rhs() const {
     return *rhs_;
   }
 
-  virtual void Accept(Visitor&) override;
+  VOID_ACCEPT()
 
   BinOp(Op op, UniquePtr<Ast> lhs, UniquePtr<Ast> rhs)
       : op_{op}, lhs_{std::move(lhs)}, rhs_{std::move(rhs)} {}
@@ -135,15 +165,15 @@ class BinOp : public Ast {
 
 class Case : public Ast {
  public:
-  auto& of() const {
+  const auto& of() const {
     return *of_;
   }
 
-  auto& branches() const {
+  const auto& branches() const {
     return branches_;
   }
 
-  virtual void Accept(Visitor&) override;
+  VOID_ACCEPT()
 
   Case(UniquePtr<Ast> of, std::vector<UniquePtr<Branch>> branches)
       : of_{std::move(of)}, branches_{std::move(branches)} {}
@@ -155,15 +185,15 @@ class Case : public Ast {
 
 class Application : public Ast {
  public:
-  auto& left() const {
+  const auto& left() const {
     return *left_;
   }
 
-  auto& right() const {
+  const auto& right() const {
     return *right_;
   }
 
-  virtual void Accept(Visitor&) override;
+  VOID_ACCEPT()
 
   Application(UniquePtr<Ast> left, UniquePtr<Ast> right)
       : left_{std::move(left)}, right_{std::move(right)} {}
@@ -175,15 +205,15 @@ class Application : public Ast {
 
 class PatternConstructor : public Pattern {
  public:
-  auto& constructor() const {
+  const auto& constructor() const {
     return ctor_;
   }
 
-  auto& params() const {
+  const auto& params() const {
     return params_;
   }
 
-  virtual void Accept(Visitor&) override;
+  VOID_ACCEPT()
 
   PatternConstructor(std::string ctor, std::vector<std::string> params)
       : ctor_{std::move(ctor)}, params_{std::move(params)} {}
@@ -195,11 +225,11 @@ class PatternConstructor : public Pattern {
 
 class PatternVar : public Pattern {
  public:
-  auto& var() const {
+  const auto& var() const {
     return var_;
   }
 
-  virtual void Accept(Visitor&) override;
+  VOID_ACCEPT()
 
   PatternVar(std::string var) : var_{std::move(var)} {}
 
@@ -208,26 +238,26 @@ class PatternVar : public Pattern {
 };
 
 struct Definition {
-  virtual void Accept(Visitor&) = 0;
+  PURE_ACCEPT()
 
   virtual ~Definition() = default;
 };
 
 class FunctionDefinition : public Definition {
  public:
-  auto& name() const {
+  const auto& name() const {
     return name_;
   }
 
-  auto& params() const {
+  const auto& params() const {
     return params_;
   }
 
-  auto& body() const {
+  const auto& body() const {
     return body_;
   }
 
-  virtual void Accept(Visitor&) override;
+  VOID_ACCEPT()
 
   FunctionDefinition(std::string name, std::vector<std::string> params,
                      UniquePtr<Ast> body)
@@ -243,15 +273,15 @@ class FunctionDefinition : public Definition {
 
 class TypeDefinition : public Definition {
  public:
-  auto& name() const {
+  const auto& name() const {
     return name_;
   }
 
-  auto& constructor() const {
+  const auto& constructor() const {
     return ctors_;
   }
 
-  virtual void Accept(Visitor&) override;
+  VOID_ACCEPT()
 
   TypeDefinition(std::string name,
                  std::vector<UniquePtr<TypeConstructor>> ctors)
@@ -261,5 +291,8 @@ class TypeDefinition : public Definition {
   std::string name_;
   std::vector<UniquePtr<TypeConstructor>> ctors_;
 };
+
+#undef VOID_ACCEPT
+#undef PURE_ACCEPT
 
 }  // namespace fl

@@ -8,7 +8,7 @@
 
 namespace fl {
 
-void DumpVisitor::Visit(Application& app) {
+void DumpVisitor::Visit(Visitor<Application>::Visitable& app) {
   std::cout << Padding_(curr_pad_);
   auto tmp = curr_pad_;
   curr_pad_ = 0;
@@ -18,7 +18,7 @@ void DumpVisitor::Visit(Application& app) {
   curr_pad_ = tmp;
 }
 
-void DumpVisitor::Visit(BinOp& op) {
+void DumpVisitor::Visit(const BinOp& op) {
   std::cout << Padding_(curr_pad_) << "(";
   auto op_symbol = '\0';
   switch (op.op()) {
@@ -47,7 +47,7 @@ void DumpVisitor::Visit(BinOp& op) {
   curr_pad_ = tmp;
 }
 
-void DumpVisitor::Visit(Branch& branch) {
+void DumpVisitor::Visit(const Branch& branch) {
   std::cout << Padding_(curr_pad_);
   auto tmp = curr_pad_;
   curr_pad_ = 0;
@@ -58,7 +58,7 @@ void DumpVisitor::Visit(Branch& branch) {
   curr_pad_ = tmp;
 }
 
-void DumpVisitor::Visit(Case& c) {
+void DumpVisitor::Visit(const Case& c) {
   std::cout << Padding_(curr_pad_) << "case: ";
   auto tmp = curr_pad_;
   curr_pad_ = 0;
@@ -73,7 +73,7 @@ void DumpVisitor::Visit(Case& c) {
   std::cout << Padding_(curr_pad_) << "esac";
 }
 
-void DumpVisitor::Visit(FunctionDefinition& func) {
+void DumpVisitor::Visit(const FunctionDefinition& func) {
   std::cout << Padding_(curr_pad_) << "func: " << func.name() << " (";
   for (auto it = func.params().cbegin(); it != func.params().cend(); ++it) {
     std::cout << *it;
@@ -89,29 +89,29 @@ void DumpVisitor::Visit(FunctionDefinition& func) {
   std::cout << Padding_(curr_pad_) << "}" << '\n';
 }
 
-void DumpVisitor::Visit(Int& i) {
+void DumpVisitor::Visit(const Int& i) {
   std::cout << Padding_(curr_pad_) << "Int(" << i.value() << ")";
 }
 
-void DumpVisitor::Visit(PatternConstructor& ctor) {
+void DumpVisitor::Visit(const PatternConstructor& ctor) {
   std::cout << Padding_(curr_pad_) << ctor.constructor();
   for (auto&& param : ctor.params()) {
     std::cout << " " << param;
   }
 }
 
-void DumpVisitor::Visit(PatternVar& var) {
+void DumpVisitor::Visit(const PatternVar& var) {
   std::cout << Padding_(curr_pad_) << "PatternVar(" << var.var() << ")";
 }
 
-void DumpVisitor::Visit(TypeConstructor& ctor) {
+void DumpVisitor::Visit(const TypeConstructor& ctor) {
   std::cout << Padding_(curr_pad_) << "ctor: " << ctor.name();
   for (auto&& type : ctor.types()) {
     std::cout << " " << type;
   }
 }
 
-void DumpVisitor::Visit(TypeDefinition& type) {
+void DumpVisitor::Visit(const TypeDefinition& type) {
   std::cout << Padding_(curr_pad_) << "data: " << type.name() << " {" << '\n';
   curr_pad_ += 2;
   for (auto&& ctor : type.constructor()) {
@@ -122,11 +122,11 @@ void DumpVisitor::Visit(TypeDefinition& type) {
   std::cout << Padding_(curr_pad_) << "}" << '\n';
 }
 
-void DumpVisitor::Visit(TypeId& id) {
+void DumpVisitor::Visit(const TypeId& id) {
   std::cout << Padding_(curr_pad_) << "Type(" << id.id() << ")";
 }
 
-void DumpVisitor::Visit(VarId& id) {
+void DumpVisitor::Visit(const VarId& id) {
   std::cout << Padding_(curr_pad_) << "Var(" << id.id() << ")";
 }
 

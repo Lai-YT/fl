@@ -3,7 +3,7 @@ PARSER = parser
 CXX = g++
 CXXFLAGS = -std=c++14 -g -Wall
 
-OBJS = $(SCANNER).o $(PARSER).o ast.o dump_visitor.o
+OBJS = $(SCANNER).o $(PARSER).o visitor.o dump_visitor.o
 DEPS = $(OBJS:.o=.d)
 
 main: %: %.cpp $(OBJS)
