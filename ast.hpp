@@ -1,47 +1,39 @@
 #pragma once
 
-#include <cassert>   // for assert
-#include <iostream>  // for cout
-#include <iterator>  // for prev
-#include <memory>    // for unique_ptr
-#include <string>    // for string
-#include <utility>   // for move
-#include <vector>    // for vector
-
-// clang-format off
-// Not to format the padding to emphasize the actual length.
-
-// 80 spaces for padding      01234567890123456789012345678901234567890123456789012345678901234567890123456789
-static const char* padding = "                                                                                ";
-
-// clang-format on
-
-/// @param n The length of the padding, saturated on the boundary of [0, 80].
-static const char* Pad(int n);
+#include <memory>   // for unique_ptr
+#include <string>   // for string
+#include <utility>  // for move
+#include <vector>   // for vector
 
 namespace fl {
+
+struct Visitor;
 
 template <class T>
 using UniquePtr = std::unique_ptr<T>;
 
 struct Ast {
-  virtual void Dump(int pad) const = 0;
+  virtual void Accept(Visitor&) = 0;
+
   virtual ~Ast() = default;
 };
 
 struct Pattern {
-  virtual void Dump(int pad) const = 0;
+  virtual void Accept(Visitor&) = 0;
+
   virtual ~Pattern() = default;
 };
 
 class Branch {
  public:
-  virtual void Dump(int pad) const {
-    std::cout << Pad(pad);
-    pattern_->Dump(0);
-    std::cout << " -> ";
-    ast_->Dump(0);
-    std::cout << '\n';
+  virtual void Accept(Visitor&);
+
+  Pattern& pattern() const {
+    return *pattern_;
+  }
+
+  Ast& ast() const {
+    return *ast_;
   }
 
   Branch(UniquePtr<Pattern> pattern, UniquePtr<Ast> ast)
@@ -54,11 +46,14 @@ class Branch {
 
 class TypeConstructor {
  public:
-  virtual void Dump(int pad) const {
-    std::cout << Pad(pad) << "ctor: " << name_ << " ";
-    for (auto&& type : types_) {
-      std::cout << type << " ";
-    }
+  virtual void Accept(Visitor&);
+
+  auto& name() const {
+    return name_;
+  }
+
+  auto& types() const {
+    return types_;
   }
 
   TypeConstructor(std::string name, std::vector<std::string> types)
@@ -71,9 +66,11 @@ class TypeConstructor {
 
 class Int : public Ast {
  public:
-  void Dump(int pad) const override {
-    std::cout << Pad(pad) << "Int(" << value_ << ")";
+  auto& value() const {
+    return value_;
   }
+
+  virtual void Accept(Visitor&) override;
 
   Int(int v) : value_{v} {}
 
@@ -83,9 +80,11 @@ class Int : public Ast {
 
 class TypeId : public Ast {
  public:
-  void Dump(int pad) const override {
-    std::cout << Pad(pad) << "Type(" << id_ << ")";
+  auto& id() const {
+    return id_;
   }
+
+  virtual void Accept(Visitor&) override;
 
   explicit TypeId(std::string id) : id_{std::move(id)} {}
 
@@ -95,9 +94,11 @@ class TypeId : public Ast {
 
 class VarId : public Ast {
  public:
-  void Dump(int pad) const override {
-    std::cout << Pad(pad) << "Var(" << id_ << ")";
+  auto& id() const {
+    return id_;
   }
+
+  virtual void Accept(Visitor&) override;
 
   explicit VarId(std::string id) : id_{std::move(id)} {}
 
@@ -109,31 +110,19 @@ class BinOp : public Ast {
  public:
   enum class Op { KPlus, KMinus, KTimes, KDivide };
 
-  void Dump(int pad) const override {
-    std::cout << Pad(pad) << "(";
-    auto op_symbol = '\0';
-    switch (op_) {
-      case Op::KPlus:
-        op_symbol = '+';
-        break;
-      case Op::KMinus:
-        op_symbol = '-';
-        break;
-      case Op::KTimes:
-        op_symbol = '*';
-        break;
-      case Op::KDivide:
-        op_symbol = '/';
-        break;
-      default:
-        assert(false && "Unknown Op");
-    }
-    std::cout << op_symbol << " ";
-    lhs_->Dump(0);
-    std::cout << " ";
-    rhs_->Dump(0);
-    std::cout << ")";
+  auto& op() const {
+    return op_;
   }
+
+  auto& lhs() const {
+    return *lhs_;
+  }
+
+  auto& rhs() const {
+    return *rhs_;
+  }
+
+  virtual void Accept(Visitor&) override;
 
   BinOp(Op op, UniquePtr<Ast> lhs, UniquePtr<Ast> rhs)
       : op_{op}, lhs_{std::move(lhs)}, rhs_{std::move(rhs)} {}
@@ -146,15 +135,15 @@ class BinOp : public Ast {
 
 class Case : public Ast {
  public:
-  void Dump(int pad) const override {
-    std::cout << Pad(pad) << "case: ";
-    of_->Dump(0);
-    std::cout << " of" << '\n';
-    for (auto&& branch : branches_) {
-      branch->Dump(pad + 2);
-    }
-    std::cout << Pad(pad) << "esac";
+  auto& of() const {
+    return *of_;
   }
+
+  auto& branches() const {
+    return branches_;
+  }
+
+  virtual void Accept(Visitor&) override;
 
   Case(UniquePtr<Ast> of, std::vector<UniquePtr<Branch>> branches)
       : of_{std::move(of)}, branches_{std::move(branches)} {}
@@ -166,12 +155,15 @@ class Case : public Ast {
 
 class Application : public Ast {
  public:
-  void Dump(int pad) const override {
-    std::cout << Pad(pad);
-    left_->Dump(0);
-    std::cout << " ";
-    right_->Dump(0);
+  auto& left() const {
+    return *left_;
   }
+
+  auto& right() const {
+    return *right_;
+  }
+
+  virtual void Accept(Visitor&) override;
 
   Application(UniquePtr<Ast> left, UniquePtr<Ast> right)
       : left_{std::move(left)}, right_{std::move(right)} {}
@@ -183,12 +175,15 @@ class Application : public Ast {
 
 class PatternConstructor : public Pattern {
  public:
-  void Dump(int pad) const override {
-    std::cout << Pad(pad) << ctor_;
-    for (auto&& param : params_) {
-      std::cout << " " << param;
-    }
+  auto& constructor() const {
+    return ctor_;
   }
+
+  auto& params() const {
+    return params_;
+  }
+
+  virtual void Accept(Visitor&) override;
 
   PatternConstructor(std::string ctor, std::vector<std::string> params)
       : ctor_{std::move(ctor)}, params_{std::move(params)} {}
@@ -200,9 +195,11 @@ class PatternConstructor : public Pattern {
 
 class PatternVar : public Pattern {
  public:
-  void Dump(int pad) const override {
-    std::cout << Pad(pad) << "PatternVar(" << var_ << ")";
+  auto& var() const {
+    return var_;
   }
+
+  virtual void Accept(Visitor&) override;
 
   PatternVar(std::string var) : var_{std::move(var)} {}
 
@@ -211,25 +208,26 @@ class PatternVar : public Pattern {
 };
 
 struct Definition {
-  virtual void Dump(int pad) const = 0;
+  virtual void Accept(Visitor&) = 0;
+
   virtual ~Definition() = default;
 };
 
 class FunctionDefinition : public Definition {
  public:
-  void Dump(int pad) const override {
-    std::cout << Pad(pad) << "func: " << name_ << " (";
-    for (auto it = params_.cbegin(); it != params_.cend(); ++it) {
-      std::cout << *it;
-      if (it != std::prev(params_.cend(), 1)) {
-        std::cout << ", ";
-      }
-    }
-    std::cout << ") {" << '\n';
-    body_->Dump(pad + 2);
-    std::cout << '\n';
-    std::cout << Pad(pad) << "}" << '\n';
+  auto& name() const {
+    return name_;
   }
+
+  auto& params() const {
+    return params_;
+  }
+
+  auto& body() const {
+    return body_;
+  }
+
+  virtual void Accept(Visitor&) override;
 
   FunctionDefinition(std::string name, std::vector<std::string> params,
                      UniquePtr<Ast> body)
@@ -245,14 +243,15 @@ class FunctionDefinition : public Definition {
 
 class TypeDefinition : public Definition {
  public:
-  void Dump(int pad) const override {
-    std::cout << Pad(pad) << "data: " << name_ << " {" << '\n';
-    for (auto&& ctor : ctors_) {
-      ctor->Dump(pad + 2);
-      std::cout << '\n';
-    }
-    std::cout << Pad(pad) << "}" << '\n';
+  auto& name() const {
+    return name_;
   }
+
+  auto& constructor() const {
+    return ctors_;
+  }
+
+  virtual void Accept(Visitor&) override;
 
   TypeDefinition(std::string name,
                  std::vector<UniquePtr<TypeConstructor>> ctors)
@@ -264,12 +263,3 @@ class TypeDefinition : public Definition {
 };
 
 }  // namespace fl
-
-static const char* Pad(int n) {
-  if (n > 80) {
-    n = 80;
-  } else if (n < 0) {
-    n = 0;
-  }
-  return padding + (80 - n);
-}

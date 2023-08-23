@@ -3,7 +3,7 @@ PARSER = parser
 CXX = g++
 CXXFLAGS = -std=c++14 -g -Wall
 
-OBJS = $(SCANNER).o $(PARSER).o
+OBJS = $(SCANNER).o $(PARSER).o ast.o dump_visitor.o
 DEPS = $(OBJS:.o=.d)
 
 main: %: %.cpp $(OBJS)
@@ -20,6 +20,9 @@ $(SCANNER).o: %.o: %.cpp $(PARSER).hpp
 
 %.cpp: %.l
 	flex -o $@ $<
+
+%.o: %.cpp
+	$(CXX) -o $@ -c $< $(CXXFLAGS) -MMD
 
 test: main
 	./main < test.fl

@@ -1,6 +1,7 @@
 #include <vector>
 
 #include "ast.hpp"
+#include "dump_visitor.hpp"
 #include "parser.hpp"
 
 extern void yylex_destroy();
@@ -11,8 +12,9 @@ int main() {
   yy::parser parser{};
   auto ret = parser.parse();
   yylex_destroy();
+  auto dump_visitor = fl::DumpVisitor{};
   for (auto&& p : program) {
-    p->Dump(0);
+    p->Accept(dump_visitor);
   }
   return ret;
 }
