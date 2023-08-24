@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <type_traits>
 
 #include "visitor.hpp"
@@ -19,6 +20,8 @@ struct Visitable {
   virtual void Accept(BaseVisitor&) = 0;
   virtual void Accept(BaseVisitor&) const = 0;
 
+  using AcceptError = std::runtime_error;
+
  protected:
   template <class T>
   static void AcceptImpl(T& visitable, BaseVisitor& visitor) {
@@ -31,6 +34,8 @@ struct Visitable {
                    &visitor)) {
       // A modifying Visitor can act like a non-modifying one.
       v->Visit(visitable);
+    } else {
+      throw AcceptError{"Unvisitable type"};
     }
   }
 
@@ -40,6 +45,8 @@ struct Visitable {
             Visitor<std::remove_cv_t<std::remove_reference_t<T>>, false>*>(
             &visitor)) {
       v->Visit(visitable);
+    } else {
+      throw AcceptError{"Unvisitable type"};
     }
   }
 };
