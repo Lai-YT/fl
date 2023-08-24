@@ -22,7 +22,7 @@ struct Pattern : public Visitable {
 
 class Branch : public Visitable {
  public:
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   const auto& pattern() const {
     return *pattern_;
@@ -42,7 +42,7 @@ class Branch : public Visitable {
 
 class TypeConstructor : public Visitable {
  public:
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   const auto& name() const {
     return name_;
@@ -62,7 +62,7 @@ class TypeConstructor : public Visitable {
 
 class Int : public Ast {
  public:
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   auto value() const {
     return value_;
@@ -80,7 +80,7 @@ class TypeId : public Ast {
     return id_;
   }
 
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   explicit TypeId(std::string id) : id_{std::move(id)} {}
 
@@ -94,7 +94,7 @@ class VarId : public Ast {
     return id_;
   }
 
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   explicit VarId(std::string id) : id_{std::move(id)} {}
 
@@ -118,7 +118,7 @@ class BinOp : public Ast {
     return *rhs_;
   }
 
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   BinOp(Op op, UniquePtr<Ast> lhs, UniquePtr<Ast> rhs)
       : op_{op}, lhs_{std::move(lhs)}, rhs_{std::move(rhs)} {}
@@ -139,7 +139,7 @@ class Case : public Ast {
     return branches_;
   }
 
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   Case(UniquePtr<Ast> of, std::vector<UniquePtr<Branch>> branches)
       : of_{std::move(of)}, branches_{std::move(branches)} {}
@@ -159,7 +159,7 @@ class Application : public Ast {
     return *right_;
   }
 
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   Application(UniquePtr<Ast> left, UniquePtr<Ast> right)
       : left_{std::move(left)}, right_{std::move(right)} {}
@@ -179,7 +179,7 @@ class PatternConstructor : public Pattern {
     return params_;
   }
 
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   PatternConstructor(std::string ctor, std::vector<std::string> params)
       : ctor_{std::move(ctor)}, params_{std::move(params)} {}
@@ -195,7 +195,7 @@ class PatternVar : public Pattern {
     return var_;
   }
 
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   PatternVar(std::string var) : var_{std::move(var)} {}
 
@@ -221,7 +221,7 @@ class FunctionDefinition : public Definition {
     return body_;
   }
 
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   FunctionDefinition(std::string name, std::vector<std::string> params,
                      UniquePtr<Ast> body)
@@ -245,7 +245,7 @@ class TypeDefinition : public Definition {
     return ctors_;
   }
 
-  VOID_ACCEPT()
+  DEFINE_DEFAULT_ACCEPT()
 
   TypeDefinition(std::string name,
                  std::vector<UniquePtr<TypeConstructor>> ctors)

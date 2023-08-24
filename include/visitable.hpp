@@ -6,7 +6,8 @@
 
 namespace fl {
 
-#define VOID_ACCEPT() \
+/// @brief Default `Accept` functions for the concrete `Visitable`s.
+#define DEFINE_DEFAULT_ACCEPT() \
   virtual void Accept(BaseVisitor& v) { \
     Visitable::AcceptImpl(*this, v); \
   } \
