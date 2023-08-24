@@ -6,6 +6,7 @@
 #include <vector>   // for vector
 
 #include "visitable.hpp"
+#include "visitor.hpp"
 
 namespace fl {
 
@@ -22,14 +23,19 @@ struct Pattern : public Visitable {
 
 class Branch : public Visitable {
  public:
-  DEFINE_DEFAULT_ACCEPT()
-
   const auto& pattern() const {
     return *pattern_;
   }
 
   const auto& ast() const {
     return *ast_;
+  }
+
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
   }
 
   Branch(UniquePtr<Pattern> pattern, UniquePtr<Ast> ast)
@@ -42,14 +48,19 @@ class Branch : public Visitable {
 
 class TypeConstructor : public Visitable {
  public:
-  DEFINE_DEFAULT_ACCEPT()
-
   const auto& name() const {
     return name_;
   }
 
   const auto& types() const {
     return types_;
+  }
+
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
   }
 
   TypeConstructor(std::string name, std::vector<std::string> types)
@@ -62,10 +73,15 @@ class TypeConstructor : public Visitable {
 
 class Int : public Ast {
  public:
-  DEFINE_DEFAULT_ACCEPT()
-
   auto value() const {
     return value_;
+  }
+
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
   }
 
   Int(int v) : value_{v} {}
@@ -80,7 +96,12 @@ class TypeId : public Ast {
     return id_;
   }
 
-  DEFINE_DEFAULT_ACCEPT()
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
+  }
 
   explicit TypeId(std::string id) : id_{std::move(id)} {}
 
@@ -94,7 +115,12 @@ class VarId : public Ast {
     return id_;
   }
 
-  DEFINE_DEFAULT_ACCEPT()
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
+  }
 
   explicit VarId(std::string id) : id_{std::move(id)} {}
 
@@ -118,7 +144,12 @@ class BinOp : public Ast {
     return *rhs_;
   }
 
-  DEFINE_DEFAULT_ACCEPT()
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
+  }
 
   BinOp(Op op, UniquePtr<Ast> lhs, UniquePtr<Ast> rhs)
       : op_{op}, lhs_{std::move(lhs)}, rhs_{std::move(rhs)} {}
@@ -139,7 +170,12 @@ class Case : public Ast {
     return branches_;
   }
 
-  DEFINE_DEFAULT_ACCEPT()
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
+  }
 
   Case(UniquePtr<Ast> of, std::vector<UniquePtr<Branch>> branches)
       : of_{std::move(of)}, branches_{std::move(branches)} {}
@@ -159,7 +195,12 @@ class Application : public Ast {
     return *right_;
   }
 
-  DEFINE_DEFAULT_ACCEPT()
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
+  }
 
   Application(UniquePtr<Ast> left, UniquePtr<Ast> right)
       : left_{std::move(left)}, right_{std::move(right)} {}
@@ -179,7 +220,12 @@ class PatternConstructor : public Pattern {
     return params_;
   }
 
-  DEFINE_DEFAULT_ACCEPT()
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
+  }
 
   PatternConstructor(std::string ctor, std::vector<std::string> params)
       : ctor_{std::move(ctor)}, params_{std::move(params)} {}
@@ -195,7 +241,12 @@ class PatternVar : public Pattern {
     return var_;
   }
 
-  DEFINE_DEFAULT_ACCEPT()
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
+  }
 
   PatternVar(std::string var) : var_{std::move(var)} {}
 
@@ -221,7 +272,12 @@ class FunctionDefinition : public Definition {
     return body_;
   }
 
-  DEFINE_DEFAULT_ACCEPT()
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
+  }
 
   FunctionDefinition(std::string name, std::vector<std::string> params,
                      UniquePtr<Ast> body)
@@ -245,7 +301,12 @@ class TypeDefinition : public Definition {
     return ctors_;
   }
 
-  DEFINE_DEFAULT_ACCEPT()
+  virtual void Accept(BaseVisitor& v) {
+    Visitable::AcceptImpl(*this, v);
+  }
+  virtual void Accept(BaseVisitor& v) const {
+    Visitable::AcceptImpl(*this, v);
+  }
 
   TypeDefinition(std::string name,
                  std::vector<UniquePtr<TypeConstructor>> ctors)

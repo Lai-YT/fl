@@ -7,15 +7,6 @@
 
 namespace fl {
 
-/// @brief Default `Accept` functions for the concrete `Visitable`s.
-#define DEFINE_DEFAULT_ACCEPT() \
-  virtual void Accept(BaseVisitor& v) { \
-    Visitable::AcceptImpl(*this, v); \
-  } \
-  virtual void Accept(BaseVisitor& v) const { \
-    Visitable::AcceptImpl(*this, v); \
-  }
-
 struct Visitable {
   virtual void Accept(BaseVisitor&) = 0;
   virtual void Accept(BaseVisitor&) const = 0;
@@ -23,6 +14,13 @@ struct Visitable {
   using AcceptError = std::runtime_error;
 
  protected:
+  /// @note Should be called by `Accept` unless you want to implement
+  /// non-default behaviors.
+  /// @tparam T the runtime type of the visitable.
+  /// @param visitable usually passed with `*this`.
+  /// @param visitor
+  /// @throws `AcceptError` if the `visitor` cannot visit a visitable of type
+  /// `T`.
   template <class T>
   static void AcceptImpl(T& visitable, BaseVisitor& visitor) {
     if (auto* v = dynamic_cast<
@@ -39,6 +37,13 @@ struct Visitable {
     }
   }
 
+  /// @note Should be called by `Accept` unless you want to implement
+  /// non-default behaviors.
+  /// @tparam T the runtime type of the visitable.
+  /// @param visitable usually passed with `*this`.
+  /// @param visitor
+  /// @throws `AcceptError` if the `visitor` cannot visit a visitable of type
+  /// `T`.
   template <class T>
   static void AcceptImpl(const T& visitable, BaseVisitor& visitor) {
     if (auto* v = dynamic_cast<
