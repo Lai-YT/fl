@@ -5,56 +5,22 @@
 #include <utility>  // for move
 #include <vector>   // for vector
 
-#include "visitor.hpp"
+#include "visitable.hpp"
 
 namespace fl {
 
 template <class T>
-struct remove_cvptr {
-  typedef std::remove_cv_t<std::remove_pointer_t<T>> type;
-};
-template <class T>
-using remove_cvptr_t = typename remove_cvptr<T>::type;
-
-#define PURE_ACCEPT() \
-  virtual void Accept(BaseVisitor& v) = 0; \
-  virtual void Accept(BaseVisitor& v) const = 0;
-
-#define VOID_ACCEPT() \
-  virtual void Accept(BaseVisitor& v) { \
-    if (auto* visitor = \
-            dynamic_cast<Visitor<fl::remove_cvptr_t<decltype(this)>, false>*>( \
-                &v)) { \
-      visitor->Visit(*this); \
-    } else if (auto* visitor = dynamic_cast< \
-                   Visitor<fl::remove_cvptr_t<decltype(this)>, true>*>(&v)) { \
-      visitor->Visit(*this); \
-    } \
-  } \
-  virtual void Accept(BaseVisitor& v) const { \
-    if (auto* visitor = \
-            dynamic_cast<Visitor<fl::remove_cvptr_t<decltype(this)>, false>*>( \
-                &v)) { \
-      visitor->Visit(*this); \
-    } \
-  }
-
-template <class T>
 using UniquePtr = std::unique_ptr<T>;
 
-struct Ast {
-  PURE_ACCEPT()
-
+struct Ast : public Visitable {
   virtual ~Ast() = default;
 };
 
-struct Pattern {
-  PURE_ACCEPT()
-
+struct Pattern : public Visitable {
   virtual ~Pattern() = default;
 };
 
-class Branch {
+class Branch : public Visitable {
  public:
   VOID_ACCEPT()
 
@@ -74,7 +40,7 @@ class Branch {
   UniquePtr<Ast> ast_;
 };
 
-class TypeConstructor {
+class TypeConstructor : public Visitable {
  public:
   VOID_ACCEPT()
 
@@ -237,9 +203,7 @@ class PatternVar : public Pattern {
   std::string var_;
 };
 
-struct Definition {
-  PURE_ACCEPT()
-
+struct Definition : public Visitable {
   virtual ~Definition() = default;
 };
 
@@ -291,8 +255,5 @@ class TypeDefinition : public Definition {
   std::string name_;
   std::vector<UniquePtr<TypeConstructor>> ctors_;
 };
-
-#undef VOID_ACCEPT
-#undef PURE_ACCEPT
 
 }  // namespace fl

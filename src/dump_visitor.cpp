@@ -8,7 +8,7 @@
 
 namespace fl {
 
-void DumpVisitor::Visit(Visitor<Application>::Visitable& app) {
+void DumpVisitor::Visit(const Application& app) {
   std::cout << Padding_(curr_pad_);
   auto tmp = curr_pad_;
   curr_pad_ = 0;
