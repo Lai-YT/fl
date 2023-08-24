@@ -1,9 +1,9 @@
 SCANNER = scanner
 PARSER = parser
 CXX = g++
-CXXFLAGS = -std=c++14 -g -Wall
+CXXFLAGS = -std=c++14 -g -Wall -Iinclude
 
-OBJS = $(SCANNER).o $(PARSER).o visitor.o dump_visitor.o
+OBJS = $(SCANNER).o $(PARSER).o src/visitor.o src/dump_visitor.o
 DEPS = $(OBJS:.o=.d)
 
 main: %: %.cpp $(OBJS)
@@ -30,7 +30,7 @@ test: main
 clean:
 	rm -f $(SCANNER).cpp $(SCANNER).hpp \
 		$(PARSER).cpp $(PARSER).hpp \
-		*.o *.d main
+		$(OBJS) $(DEPS) main
 
 .PHNOY: clean test
 
