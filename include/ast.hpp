@@ -185,6 +185,10 @@ class Case : public Ast {
   std::vector<UniquePtr<Branch>> branches_;
 };
 
+/// @brief Applies the function or constructor on the left to the argument on
+/// the right.
+/// @note Function that takes multiple arguments are transformed into a chain of
+/// functions each with a single argument. This method is known as "currying".
 class Application : public Ast {
  public:
   const auto& left() const {
@@ -210,7 +214,8 @@ class Application : public Ast {
   UniquePtr<Ast> right_;
 };
 
-class PatternConstructor : public Pattern {
+/// @brief Used in the `Branch`. Matches a `Constructor` and its parameters.
+class ConstructorPattern : public Pattern {
  public:
   const auto& constructor() const {
     return ctor_;
@@ -227,7 +232,7 @@ class PatternConstructor : public Pattern {
     Visitable::AcceptImpl(*this, v);
   }
 
-  PatternConstructor(std::string ctor, std::vector<std::string> params)
+  ConstructorPattern(std::string ctor, std::vector<std::string> params)
       : ctor_{std::move(ctor)}, params_{std::move(params)} {}
 
  private:
@@ -235,7 +240,8 @@ class PatternConstructor : public Pattern {
   std::vector<std::string> params_;
 };
 
-class PatternVar : public Pattern {
+/// @brief Used in the `Branch`. Matches the value and binds a variable to it.
+class VarPattern : public Pattern {
  public:
   const auto& var() const {
     return var_;
@@ -248,7 +254,7 @@ class PatternVar : public Pattern {
     Visitable::AcceptImpl(*this, v);
   }
 
-  PatternVar(std::string var) : var_{std::move(var)} {}
+  VarPattern(std::string var) : var_{std::move(var)} {}
 
  private:
   std::string var_;

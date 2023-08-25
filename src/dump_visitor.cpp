@@ -93,15 +93,15 @@ void DumpVisitor::Visit(const Int& i) {
   std::cout << Padding_(curr_pad_) << "Int(" << i.value() << ")";
 }
 
-void DumpVisitor::Visit(const PatternConstructor& ctor) {
+void DumpVisitor::Visit(const ConstructorPattern& ctor) {
   std::cout << Padding_(curr_pad_) << ctor.constructor();
   for (auto&& param : ctor.params()) {
     std::cout << " " << param;
   }
 }
 
-void DumpVisitor::Visit(const PatternVar& var) {
-  std::cout << Padding_(curr_pad_) << "PatternVar(" << var.var() << ")";
+void DumpVisitor::Visit(const VarPattern& var) {
+  std::cout << Padding_(curr_pad_) << "VarPattern(" << var.var() << ")";
 }
 
 void DumpVisitor::Visit(const TypeConstructor& ctor) {

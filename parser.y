@@ -162,10 +162,10 @@ branch
 
 pattern
   : VAR_ID {
-    $$ = std::make_unique<fl::PatternVar>($1);
+    $$ = std::make_unique<fl::VarPattern>($1);
   }
   | TYPE_ID var_params {
-    $$ = std::make_unique<fl::PatternConstructor>($1, $2);
+    $$ = std::make_unique<fl::ConstructorPattern>($1, $2);
   }
   ;
 
