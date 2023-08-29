@@ -53,7 +53,7 @@ void DumpVisitor::Visit(const Branch& branch) {
   curr_pad_ = 0;
   branch.pattern().Accept(*this);
   std::cout << " -> ";
-  branch.ast().Accept(*this);
+  branch.expr().Accept(*this);
   std::cout << '\n';
   curr_pad_ = tmp;
 }
@@ -104,17 +104,17 @@ void DumpVisitor::Visit(const VarPattern& var) {
   std::cout << Padding_(curr_pad_) << "VarPattern(" << var.var() << ")";
 }
 
-void DumpVisitor::Visit(const TypeConstructor& ctor) {
+void DumpVisitor::Visit(const DataConstructor& ctor) {
   std::cout << Padding_(curr_pad_) << "ctor: " << ctor.name();
   for (auto&& type : ctor.types()) {
     std::cout << " " << type;
   }
 }
 
-void DumpVisitor::Visit(const TypeDefinition& type) {
+void DumpVisitor::Visit(const DataDefinition& type) {
   std::cout << Padding_(curr_pad_) << "data: " << type.name() << " {" << '\n';
   curr_pad_ += 2;
-  for (auto&& ctor : type.constructor()) {
+  for (auto&& ctor : type.constructors()) {
     ctor->Accept(*this);
     std::cout << '\n';
   }

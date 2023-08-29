@@ -16,8 +16,8 @@ class DumpVisitor : public BaseVisitor,
                     public Visitor<Int>,
                     public Visitor<ConstructorPattern>,
                     public Visitor<VarPattern>,
-                    public Visitor<TypeConstructor>,
-                    public Visitor<TypeDefinition>,
+                    public Visitor<DataConstructor>,
+                    public Visitor<DataDefinition>,
                     public Visitor<TypeId>,
                     public Visitor<VarId> {
  public:
@@ -29,8 +29,8 @@ class DumpVisitor : public BaseVisitor,
   void Visit(const Int&) override;
   void Visit(const ConstructorPattern&) override;
   void Visit(const VarPattern&) override;
-  void Visit(const TypeConstructor&) override;
-  void Visit(const TypeDefinition&) override;
+  void Visit(const DataConstructor&) override;
+  void Visit(const DataDefinition&) override;
   void Visit(const TypeId&) override;
   void Visit(const VarId&) override;
 

@@ -27,8 +27,8 @@ class Branch : public Visitable {
     return *pattern_;
   }
 
-  const auto& ast() const {
-    return *ast_;
+  const auto& expr() const {
+    return *expr_;
   }
 
   virtual void Accept(BaseVisitor& v) {
@@ -38,15 +38,15 @@ class Branch : public Visitable {
     Visitable::AcceptImpl(*this, v);
   }
 
-  Branch(UniquePtr<Pattern> pattern, UniquePtr<Ast> ast)
-      : pattern_{std::move(pattern)}, ast_{std::move(ast)} {}
+  Branch(UniquePtr<Pattern> pattern, UniquePtr<Ast> expr)
+      : pattern_{std::move(pattern)}, expr_{std::move(expr)} {}
 
  private:
   UniquePtr<Pattern> pattern_;
-  UniquePtr<Ast> ast_;
+  UniquePtr<Ast> expr_;
 };
 
-class TypeConstructor : public Visitable {
+class DataConstructor : public Visitable {
  public:
   const auto& name() const {
     return name_;
@@ -63,7 +63,7 @@ class TypeConstructor : public Visitable {
     Visitable::AcceptImpl(*this, v);
   }
 
-  TypeConstructor(std::string name, std::vector<std::string> types)
+  DataConstructor(std::string name, std::vector<std::string> types)
       : name_{std::move(name)}, types_{std::move(types)} {}
 
  private:
@@ -297,13 +297,13 @@ class FunctionDefinition : public Definition {
   UniquePtr<Ast> body_;
 };
 
-class TypeDefinition : public Definition {
+class DataDefinition : public Definition {
  public:
   const auto& name() const {
     return name_;
   }
 
-  const auto& constructor() const {
+  const auto& constructors() const {
     return ctors_;
   }
 
@@ -314,13 +314,13 @@ class TypeDefinition : public Definition {
     Visitable::AcceptImpl(*this, v);
   }
 
-  TypeDefinition(std::string name,
-                 std::vector<UniquePtr<TypeConstructor>> ctors)
+  DataDefinition(std::string name,
+                 std::vector<UniquePtr<DataConstructor>> ctors)
       : name_{std::move(name)}, ctors_{std::move(ctors)} {}
 
  private:
   std::string name_;
-  std::vector<UniquePtr<TypeConstructor>> ctors_;
+  std::vector<UniquePtr<DataConstructor>> ctors_;
 };
 
 }  // namespace fl

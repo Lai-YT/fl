@@ -42,12 +42,12 @@ extern std::vector<fl::UniquePtr<fl::Definition>> program;
 %nterm <std::vector<std::string>> type_params var_params
 %nterm <std::vector<fl::UniquePtr<fl::Definition>>> definitions
 %nterm <std::vector<fl::UniquePtr<fl::Branch>>> branches
-%nterm <std::vector<fl::UniquePtr<fl::TypeConstructor>>> constructors
+%nterm <std::vector<fl::UniquePtr<fl::DataConstructor>>> constructors
 %nterm <fl::UniquePtr<fl::Ast>> expr bin_op case app term
 %nterm <fl::UniquePtr<fl::Definition>> definition func data
 %nterm <fl::UniquePtr<fl::Branch>> branch
 %nterm <fl::UniquePtr<fl::Pattern>> pattern
-%nterm <fl::UniquePtr<fl::TypeConstructor>> constructor
+%nterm <fl::UniquePtr<fl::DataConstructor>> constructor
 
 %left '+' '-'
 %left '*' '/'
@@ -181,7 +181,7 @@ type_params
 
 data
   : DATA TYPE_ID '=' '{' constructors '}' {
-    $$ = std::make_unique<fl::TypeDefinition>($2, $5);
+    $$ = std::make_unique<fl::DataDefinition>($2, $5);
   }
   ;
 
@@ -191,14 +191,14 @@ constructors
     $$.push_back($3);
   }
   | constructor {
-    $$ = std::vector<fl::UniquePtr<fl::TypeConstructor>>{};
+    $$ = std::vector<fl::UniquePtr<fl::DataConstructor>>{};
     $$.push_back($1);
   }
   ;
 
 constructor
   : TYPE_ID type_params {
-    $$ = std::make_unique<fl::TypeConstructor>($1, $2);
+    $$ = std::make_unique<fl::DataConstructor>($1, $2);
   }
   ;
 
